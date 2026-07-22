@@ -1,0 +1,13 @@
+appId: dev.swaythepeople.app
+productName: SwayThePeople
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+npmRebuild: false
+linux:
+  target:
+    - AppImage
+  category: Game
+  icon: build/icon.png

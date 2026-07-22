@@ -1,0 +1,8 @@
+node_modules/
+out/
+dist/
+.cache/
+.dev-data/
+*.txt
+package-lock.json
+notes
