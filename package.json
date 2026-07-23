@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Sway The People! — an LLM-driven political election campaign simulation game",
   "author": "ceccon.t@hotmail.com",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "main": "./out/main/index.js",
   "engines": {
