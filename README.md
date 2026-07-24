@@ -37,7 +37,7 @@ Once the server is running, select the "Ollama (local)" tab on the settings scre
 
 ### Using OpenRouter (cloud)
 
-If you prefer a cloud engine, the game can use OpenRouter, which provides access to many hosted models through a single API. All you need is an OpenRouter account and an API key — check their documentation at [https://openrouter.ai/docs](https://openrouter.ai/docs) for how to create an account and generate a key (look for the "API Keys" section). Note that most models on OpenRouter are paid per usage, though free options are usually available.
+If you prefer a cloud engine, the game can use OpenRouter, which provides access to many hosted models through a single API. All you need is an OpenRouter account and an API key — check their documentation at [https://openrouter.ai/docs](https://openrouter.ai/docs) for how to create an account and generate a key (look for the "API Keys" section). Note that most models on OpenRouter are paid per usage, though free options (with daily limits for requests) are usually available.
 
 With the key in hand, select the "OpenRouter (API)" tab on the settings screen, paste the key, load the model list, pick a model and use the "Test connection" button to confirm everything is working.
 
