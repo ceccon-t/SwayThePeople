@@ -38,6 +38,10 @@ npm run build:mac      # macOS dmg, arm64 + x64 (run on macOS)
 node scripts/generate-icon.mjs   # regenerate build/icon.png
 ```
 
+CI (`.github/workflows/build.yml`) builds all three platforms on native runners: manually via
+_Run workflow_ (`gh workflow run build.yml`), or by pushing a `v*` tag, which also drafts a
+GitHub release with the artifacts.
+
 Linux packages ship a launcher (`scripts/after-pack.cjs`) that keeps Chromium's sandbox when the
 system supports one (SUID helper or unprivileged user namespaces) and otherwise falls back to
 `--no-sandbox` — without it, AppImages abort on distros that restrict user namespaces
