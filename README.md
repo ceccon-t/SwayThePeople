@@ -43,11 +43,49 @@ With the key in hand, select the "OpenRouter (API)" tab on the settings screen, 
 
 ## How to run
 
-_To be written — build and packaging tools have not been configured yet._
+Either download the latest packages from the [Releases](https://github.com/ceccon-t/SwayThePeople/releases) section of this repository for your particular platform, or build the project following the instructions in the respective section below. 
+
+### Linux
+
+Two formats are available: an AppImage, which runs directly without installation, and a deb package for Debian-based distributions (such as Ubuntu or Mint).
+
+To use the AppImage, make the file executable and run it:
+
+`$ chmod +x SwayThePeople-<VERSION>-linux-x86_64.AppImage`
+
+`$ ./SwayThePeople-<VERSION>-linux-x86_64.AppImage`
+
+To use the deb package, install it with your package manager:
+
+`$ sudo apt install ./SwayThePeople-<VERSION>-linux-amd64.deb`
+
+After installation the game will be available in your applications menu, or as `swaythepeople` from a terminal.
+
+On distributions that restrict Chromium's sandbox (such as recent Ubuntu versions), the game detects this at startup and adjusts automatically — no flags or extra configuration needed.
+
+### Windows
+
+_Coming soon._
+
+### macOS
+
+_Coming soon._
 
 ## How to build the project
 
-_To be written — build and packaging tools have not been configured yet._
+The game is an Electron application written in TypeScript, so you will need Node.js installed, version 20 or newer (if you do not have it, check its site and install from there). Start by running `npm install` in the SwayThePeople folder to install all the dependencies, and after that use the command for your platform below. In all cases the resulting packages will be created in the `dist` directory.
+
+### Linux
+
+Run `npm run build:linux` in the SwayThePeople folder. This will create both Linux packages: `SwayThePeople-<VERSION>-linux-x86_64.AppImage` and `SwayThePeople-<VERSION>-linux-amd64.deb`.
+
+### Windows
+
+_Coming soon._
+
+### macOS
+
+_Coming soon._
 
 ## More info
 
