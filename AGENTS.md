@@ -43,7 +43,8 @@ npm run typecheck && npm run lint && npm test
 - To see the app: `npm run dev` (or `npm run dev:nosandbox` if the SUID sandbox aborts). For a
   headless render check: `SWAY_SCREENSHOT=/tmp/shot.png npm run dev:nosandbox` captures the window
   to a PNG and exits.
-- Full build: `npm run build:appimage` (Linux AppImage in `dist/`).
+- Full build: `npm run build:linux` (Linux AppImage + deb in `dist/`). `build:win` / `build:mac`
+  exist too but must run on their native OS (CI does this).
 
 ## Common tasks, briefly
 

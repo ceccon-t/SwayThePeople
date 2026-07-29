@@ -32,9 +32,16 @@ npm test               # vitest suite, incl. a full-campaign smoke test (offline
 npm run typecheck      # tsc --noEmit
 npm run lint           # eslint
 npm run format         # prettier
-npm run build:appimage # Linux AppImage into dist/
+npm run build:linux    # Linux AppImage + deb into dist/
+npm run build:win      # Windows NSIS installer (run on Windows)
+npm run build:mac      # macOS dmg, arm64 + x64 (run on macOS)
 node scripts/generate-icon.mjs   # regenerate build/icon.png
 ```
+
+Linux packages ship a launcher (`scripts/after-pack.cjs`) that keeps Chromium's sandbox when the
+system supports one (SUID helper or unprivileged user namespaces) and otherwise falls back to
+`--no-sandbox` — without it, AppImages abort on distros that restrict user namespaces
+(Ubuntu 23.10+).
 
 ## Where data lives
 
