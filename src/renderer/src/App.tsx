@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { computeShares } from '@core/sim/opinion';
 import { activeDebate } from '@core/sim/debates';
 import { getPlayerParty } from '@core/model/queries';
@@ -54,8 +55,52 @@ function QueueIndicator(): JSX.Element | null {
   );
 }
 
+function AboutDialog({ onClose }: { onClose: () => void }): JSX.Element {
+  return (
+    <div className="about-overlay" onClick={onClose}>
+      <div className="about-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="about-header">
+          <h2>Sway The People!</h2>
+          <span className="muted">v{__APP_VERSION__}</span>
+        </div>
+        <p>
+          A political simulation game about running for president of a fictional nation — where a
+          large language model generates the world, the rivals, the debates and the consequences.
+        </p>
+        <p>
+          Sway The People! is an open source game, created by Tiago Ceccon and released under the
+          MIT license.
+        </p>
+        <ul className="about-links">
+          <li>
+            <a href="https://github.com/ceccon-t/SwayThePeople" target="_blank" rel="noreferrer">
+              Project repository
+            </a>
+          </li>
+          <li>
+            <a href="https://ceccon.dev" target="_blank" rel="noreferrer">
+              Author&apos;s webpage
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/ceccon-t" target="_blank" rel="noreferrer">
+              Author on GitHub
+            </a>
+          </li>
+        </ul>
+        <div className="about-footer">
+          <button className="nav-btn" onClick={onClose}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TopBar(): JSX.Element {
   const { campaign, screen, navigate } = useStore();
+  const [aboutOpen, setAboutOpen] = useState(false);
   const inCampaign = campaign !== null && campaign.phase !== 'setup';
   const player = campaign?.candidates.find((c) => c.id === campaign.playerCandidateId);
   const party = campaign ? getPlayerParty(campaign) : null;
@@ -69,6 +114,12 @@ function TopBar(): JSX.Element {
       onClick={() => navigate(target)}
     >
       {label}
+    </button>
+  );
+
+  const aboutButton = (
+    <button className={`nav-btn ${aboutOpen ? 'active' : ''}`} onClick={() => setAboutOpen(true)}>
+      About
     </button>
   );
 
@@ -103,6 +154,7 @@ function TopBar(): JSX.Element {
             {campaign.phase === 'finished' && navButton({ name: 'election' }, 'Results')}
             {navButton({ name: 'saves', savesMode: 'save' }, 'Save')}
             {navButton({ name: 'menu' }, 'Menu')}
+            {aboutButton}
           </nav>
         </>
       )}
@@ -110,12 +162,14 @@ function TopBar(): JSX.Element {
         <nav className="topbar-nav">
           {navButton({ name: 'menu' }, 'Menu')}
           {navButton({ name: 'settings' }, 'AI Engine')}
+          {aboutButton}
         </nav>
       )}
       <QueueIndicator />
       <span className="app-version" title="Game version">
         v{__APP_VERSION__}
       </span>
+      {aboutOpen && <AboutDialog onClose={() => setAboutOpen(false)} />}
     </header>
   );
 }
