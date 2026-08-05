@@ -6,7 +6,13 @@
  */
 import { BOUNDS, TOPIC_AREAS } from '../model/constants';
 import { newId } from '../model/ids';
-import { clamp, findByName, getNationStates, getPlayerCandidate } from '../model/queries';
+import {
+  clamp,
+  findByName,
+  getNationStates,
+  getPlayerCandidate,
+  positionCouncilors,
+} from '../model/queries';
 import type { Campaign, OpinionImpact, TopicAreaId, TopicNumbers } from '../model/schemas';
 import { TOPIC_AREA_IDS } from '../model/schemas';
 import { addLog } from '../sim/log';
@@ -259,8 +265,9 @@ export function applyJobResult(
 
     case 'councilor.match': {
       const { positionId, councilorIds } = payload as JobPayloads['councilor.match'];
-      const pool = campaign.councilors.pool[positionId] ?? [];
-      const targets = pool.filter((c) => councilorIds.includes(c.id) && !c.agendaMatch);
+      const targets = positionCouncilors(campaign, positionId).filter(
+        (c) => councilorIds.includes(c.id) && !c.agendaMatch,
+      );
       if (targets.length === 0) return;
       const data = councilorMatchOutputSchema.parse(output);
       for (const [index, councilor] of targets.entries()) {

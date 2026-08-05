@@ -43,6 +43,17 @@ export function getHiredCouncilor(campaign: Campaign, positionId: string): Counc
   return campaign.councilors.hired[positionId] ?? null;
 }
 
+/**
+ * Every councilor attached to a position: the hired one (if any) first, then
+ * the pool. Agenda-fit needs, prompts and applies all enumerate through this
+ * so their orderings agree — a councilor hired before their fit was generated
+ * must keep receiving it.
+ */
+export function positionCouncilors(campaign: Campaign, positionId: string): Councilor[] {
+  const hired = campaign.councilors.hired[positionId];
+  return [...(hired ? [hired] : []), ...(campaign.councilors.pool[positionId] ?? [])];
+}
+
 export function rivalCandidates(campaign: Campaign): Candidate[] {
   return campaign.candidates.filter((c) => c.id !== campaign.playerCandidateId);
 }

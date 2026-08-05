@@ -11,6 +11,7 @@
  * work and lets the player read each result while the next one generates.
  */
 import { COUNCILOR_POSITION_BY_ID } from '../model/constants';
+import { positionCouncilors } from '../model/queries';
 import type { Campaign, CouncilorPositionId } from '../model/schemas';
 import { COUNCILOR_POSITION_IDS } from '../model/schemas';
 import { isCandidateSeeded } from '../sim/opinion';
@@ -74,10 +75,12 @@ function nextSetupJob(campaign: Campaign): JobRequest | null {
   }
 
   // 5. Non-blocking extras, in usefulness order: agenda fits (the player is
-  //    choosing councilors right now), then the platform, then influencers.
+  //    choosing councilors right now — including anyone already hired before
+  //    their fit was generated), then the platform, then influencers.
   for (const positionId of COUNCILOR_POSITION_IDS) {
-    const pool = campaign.councilors.pool[positionId] ?? [];
-    const unmatched = pool.filter((c) => !c.agendaMatch).map((c) => c.id);
+    const unmatched = positionCouncilors(campaign, positionId)
+      .filter((c) => !c.agendaMatch)
+      .map((c) => c.id);
     if (unmatched.length > 0) {
       return job('councilor.match', `${positionId}:${unmatched.join('.')}`, 'background', {
         positionId,
@@ -151,7 +154,9 @@ function deriveOngoingJobs(campaign: Campaign): JobRequest[] {
         }),
       );
     }
-    const unmatched = pool.filter((c) => !c.agendaMatch).map((c) => c.id);
+    const unmatched = positionCouncilors(campaign, positionId)
+      .filter((c) => !c.agendaMatch)
+      .map((c) => c.id);
     if (unmatched.length > 0) {
       jobs.push(
         job('councilor.match', `${positionId}:${unmatched.join('.')}`, 'background', {

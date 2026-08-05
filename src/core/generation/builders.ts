@@ -16,6 +16,7 @@ import {
   getCandidateParty,
   getPlayerCandidate,
   getPlayerParty,
+  positionCouncilors,
 } from '../model/queries';
 import type { Campaign, Candidate, Councilor } from '../model/schemas';
 import { composeSections } from './budget';
@@ -162,7 +163,7 @@ ${jsonInstructions('{"candidates":[{"name":"…","age":47,"gender":"…","bio":"
   },
 
   'councilor.match': (campaign, payload) => {
-    const profiles = (campaign.councilors.pool[payload.positionId] ?? [])
+    const profiles = positionCouncilors(campaign, payload.positionId)
       .filter((c) => payload.councilorIds.includes(c.id))
       .map(
         (c) => `- ${c.name}: ${c.bio} Views: ${c.politicalViews}. Personality: ${c.personality}.`,
