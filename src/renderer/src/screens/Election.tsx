@@ -1,9 +1,9 @@
 import { invoke } from '../api';
-import { Pending, Section, ShareBars, formatPct, partyOf } from '../components/common';
+import { FailedJobs, Pending, Section, ShareBars, formatPct, partyOf } from '../components/common';
 import { useStore } from '../store';
 
 export function Election(): JSX.Element {
-  const { campaign, navigate, showError } = useStore();
+  const { campaign, queue, navigate, showError } = useStore();
   if (!campaign?.result) {
     return (
       <Section title="Election Night">
@@ -18,6 +18,7 @@ export function Election(): JSX.Element {
   const playerWon = result.winnerId === campaign.playerCandidateId;
   const placing = result.ordering.indexOf(campaign.playerCandidateId) + 1;
   const states = campaign.nation?.states ?? [];
+  const epilogueFailed = queue.some((j) => j.type === 'election.epilogue' && j.status === 'failed');
 
   const closeCampaign = async (): Promise<void> => {
     const reply = await invoke('campaign.close');
@@ -107,8 +108,9 @@ export function Election(): JSX.Element {
             <p className="epilogue-text">{result.epilogue.text}</p>
           </div>
         ) : (
-          <Pending label="History is being written…" />
+          !epilogueFailed && <Pending label="History is being written…" />
         )}
+        <FailedJobs jobs={queue.filter((j) => j.type === 'election.epilogue')} />
       </Section>
 
       <div className="election-actions">

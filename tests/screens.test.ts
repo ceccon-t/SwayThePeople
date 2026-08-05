@@ -7,6 +7,7 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { DEFAULT_LLM_SETTINGS } from '@core/generation/engine';
+import type { JobSnapshot } from '@core/generation/jobs';
 import type { Campaign } from '@core/model/schemas';
 import { COUNCILOR_POSITION_IDS } from '@core/model/schemas';
 import { activeDebate } from '@core/sim/debates';
@@ -44,10 +45,11 @@ function renderScreen(
   component: () => JSX.Element,
   campaign: Campaign | null,
   screen: Screen = { name: 'hub' },
+  queue: JobSnapshot[] = [],
 ): string {
   const store: Store = {
     campaign,
-    queue: [],
+    queue,
     settings: DEFAULT_LLM_SETTINGS,
     screen,
     error: null,
@@ -109,5 +111,24 @@ describe('all screens render against real campaign states', () => {
   it('shows the epilogue on the election screen', () => {
     const html = renderScreen(Election, finished);
     expect(html).toContain('Hidden agenda advancement');
+  });
+
+  it('offers a retry when epilogue generation fails', () => {
+    const withoutEpilogue: Campaign = {
+      ...finished,
+      result: { ...finished.result!, epilogue: undefined },
+    };
+    const failedJob: JobSnapshot = {
+      key: 'election.epilogue',
+      type: 'election.epilogue',
+      priority: 'high',
+      status: 'failed',
+      attempts: 3,
+      error: 'network error',
+      label: 'History is being written…',
+    };
+    const html = renderScreen(Election, withoutEpilogue, { name: 'hub' }, [failedJob]);
+    expect(html).toContain('Retry');
+    expect(html).not.toContain('pending-card');
   });
 });
