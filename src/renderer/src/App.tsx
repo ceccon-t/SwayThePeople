@@ -1,4 +1,8 @@
 import { useState } from 'react';
+// The packaged-app icon doubles as the in-game one, so it is imported straight
+// from build/ (electron-builder needs it there) rather than duplicated here.
+import gameIcon from '../../../build/icon.png';
+import authorIcon from './assets/icon_author.svg';
 import { computeShares } from '@core/sim/opinion';
 import { activeDebate } from '@core/sim/debates';
 import { getPlayerParty } from '@core/model/queries';
@@ -55,6 +59,14 @@ function QueueIndicator(): JSX.Element | null {
   );
 }
 
+function GitHubIcon(): JSX.Element {
+  return (
+    <svg className="about-link-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+    </svg>
+  );
+}
+
 function AboutDialog({ onClose }: { onClose: () => void }): JSX.Element {
   return (
     <div className="about-overlay" onClick={onClose}>
@@ -63,32 +75,31 @@ function AboutDialog({ onClose }: { onClose: () => void }): JSX.Element {
           <h2>Sway The People!</h2>
           <span className="muted">v{__APP_VERSION__}</span>
         </div>
+        <img className="about-icon" src={gameIcon} alt="Sway The People! icon" />
         <p>
           A political simulation game about running for president of a fictional nation — where a
           large language model generates the world, the rivals, the debates and the consequences.
         </p>
         <p>
-          Sway The People! is an open source game, created by Tiago Ceccon and released under the
-          MIT license.
+          <em>Sway The People!</em> is an open source game, created by Tiago Ceccon and released
+          under the MIT license.
         </p>
-        <ul className="about-links">
-          <li>
-            <a href="https://github.com/ceccon-t/SwayThePeople" target="_blank" rel="noreferrer">
+        <div className="about-footer">
+          <nav className="about-links">
+            <a
+              className="about-link"
+              href="https://github.com/ceccon-t/SwayThePeople"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <GitHubIcon />
               Project repository
             </a>
-          </li>
-          <li>
-            <a href="https://ceccon.dev" target="_blank" rel="noreferrer">
+            <a className="about-link" href="https://ceccon.dev" target="_blank" rel="noreferrer">
+              <img className="about-link-icon" src={authorIcon} alt="" />
               Author&apos;s webpage
             </a>
-          </li>
-          <li>
-            <a href="https://github.com/ceccon-t" target="_blank" rel="noreferrer">
-              Author on GitHub
-            </a>
-          </li>
-        </ul>
-        <div className="about-footer">
+          </nav>
           <button className="nav-btn" onClick={onClose}>
             Close
           </button>

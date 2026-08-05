@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" >
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" rx="50" ry="50" fill="#D3D3D3" />
+
+  <!-- Mug hangle -->
+  <ellipse cx="130" cy="85" rx="20" ry="20" stroke="black" stroke-width="10" fill="none" />
+
+  <!-- Mug body -->
+  <rect x="50" y="50" rx="10" ry="10" width="80" height="80" fill="black" />
+
+  <!-- Saucer -->
+  <polygon points="25,137 155,137 140,150 40,150" fill="black"/>
+
+</svg>
+ 
