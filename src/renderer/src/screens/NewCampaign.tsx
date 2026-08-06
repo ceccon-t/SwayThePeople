@@ -3,6 +3,7 @@ import { isCoreSetupReady } from '@core/campaign/status';
 import { COUNCILOR_POSITION_BY_ID, TOPIC_AREA_BY_ID } from '@core/model/constants';
 import type { Campaign, CouncilorPositionId } from '@core/model/schemas';
 import { COUNCILOR_POSITION_IDS } from '@core/model/schemas';
+import { positionCouncilors } from '@core/model/queries';
 import { isCandidateSeeded } from '@core/sim/opinion';
 import { invoke } from '../api';
 import { FailedJobs, Pending, Section, Spinner, partyOf } from '../components/common';
@@ -280,9 +281,15 @@ function WorldStep(): JSX.Element {
   const candidateTotal = settings.rivalCount + 1;
   const rivalsDone = rivals.length >= settings.rivalCount;
   const opinionDone = seededCount >= candidateTotal;
-  const matchesDone = COUNCILOR_POSITION_IDS.every((id) =>
-    (campaign.councilors.pool[id] ?? []).every((c) => c.agendaMatch),
-  );
+  // A position's assessments are done only once its applicants exist: the pool
+  // is at full size (or someone was hired, which stops pool generation) and
+  // everyone attached to it — hired included — has an agenda fit.
+  const matchesDone = COUNCILOR_POSITION_IDS.every((id) => {
+    const poolFilled =
+      Boolean(campaign.councilors.hired[id]) ||
+      (campaign.councilors.pool[id]?.length ?? 0) >= settings.councilorPoolSize;
+    return poolFilled && positionCouncilors(campaign, id).every((c) => c.agendaMatch);
+  });
   const influencersDone = campaign.influencers.length >= settings.influencerCount;
 
   const working =
