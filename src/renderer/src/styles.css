@@ -13,6 +13,7 @@
   --party-2: #1d3557;
   --good: #6fce8f;
   --bad: #e0716f;
+  --warn: #e8b33e;
   --serif: Georgia, 'Times New Roman', serif;
   --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
@@ -587,6 +588,48 @@ em {
   color: var(--text);
   border-color: var(--party);
   background: var(--panel-2);
+}
+
+/* Loud on purpose: the cost and privacy warnings sit above the OpenRouter
+   fields so no one can reach the API key without passing through them. */
+
+.warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0 20px;
+}
+
+.warning-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #2c2211;
+  border: 1px solid var(--warn);
+  border-left-width: 5px;
+  border-radius: 8px;
+  padding: 12px 15px;
+  color: #f1e2c2;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.warning-icon {
+  color: var(--warn);
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.warning-title {
+  display: block;
+  color: var(--warn);
+  font-family: var(--serif);
+  font-size: 15.5px;
+  margin-bottom: 4px;
+}
+
+.warning-callout p strong {
+  color: #fff3d6;
 }
 
 .settings-fields,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   DEFAULT_LLM_SETTINGS,
   RECOMMENDED_MODELS,
@@ -21,6 +21,21 @@ export function isEngineConfiguredView(settings: LlmSettings): boolean {
     case 'mock':
       return true;
   }
+}
+
+/** Notice the player must not be able to miss before configuring a provider. */
+function Warning({ title, children }: { title: string; children: ReactNode }): JSX.Element {
+  return (
+    <div className="warning-callout" role="alert">
+      <span className="warning-icon" aria-hidden="true">
+        ⚠
+      </span>
+      <div>
+        <strong className="warning-title">{title}</strong>
+        <p>{children}</p>
+      </div>
+    </div>
+  );
 }
 
 /** Filterable model picker: the list always comes from the provider's API. */
@@ -192,46 +207,70 @@ export function Settings(): JSX.Element {
         )}
 
         {provider === 'openrouter' && (
-          <div className="settings-fields">
-            <label>
-              API base URL
-              <input
-                type="text"
-                value={draft.openrouter.baseUrl}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    openrouter: { ...draft.openrouter, baseUrl: e.target.value },
-                  })
+          <>
+            <div className="warnings">
+              <Warning title="Paid models are charged to your account">
+                OpenRouter bills every request made with a model that is not free to the account
+                behind the API key you enter here, and a single campaign makes a great many
+                requests. To avoid any charge, check on OpenRouter that the model you pick is a free
+                one before playing.{' '}
+                <strong>
+                  By proceeding with a model that is not free, you acknowledge that you will be
+                  charged for the game's requests.
+                </strong>
+              </Warning>
+              <Warning title="Your campaign leaves your machine">
+                Requests sent to OpenRouter may be stored by OpenRouter itself or by the provider
+                that actually serves the model.{' '}
+                <strong>
+                  By proceeding, you acknowledge that you must never reveal personal data anywhere
+                  in the game, and that everything about a campaign played through OpenRouter — the
+                  candidate, the agendas, the debates, every chat — should be considered no longer
+                  private.
+                </strong>
+              </Warning>
+            </div>
+            <div className="settings-fields">
+              <label>
+                API base URL
+                <input
+                  type="text"
+                  value={draft.openrouter.baseUrl}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      openrouter: { ...draft.openrouter, baseUrl: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label>
+                API key
+                <input
+                  type="password"
+                  value={draft.openrouter.apiKey}
+                  placeholder="sk-or-…"
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      openrouter: { ...draft.openrouter, apiKey: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label className="field-label">Model</label>
+              <ModelPicker
+                models={models}
+                value={draft.openrouter.model}
+                recommended={RECOMMENDED_MODELS.openrouter}
+                loading={loadingModels}
+                onChange={(model) =>
+                  setDraft({ ...draft, openrouter: { ...draft.openrouter, model } })
                 }
+                onRefresh={() => void loadModels()}
               />
-            </label>
-            <label>
-              API key
-              <input
-                type="password"
-                value={draft.openrouter.apiKey}
-                placeholder="sk-or-…"
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    openrouter: { ...draft.openrouter, apiKey: e.target.value },
-                  })
-                }
-              />
-            </label>
-            <label className="field-label">Model</label>
-            <ModelPicker
-              models={models}
-              value={draft.openrouter.model}
-              recommended={RECOMMENDED_MODELS.openrouter}
-              loading={loadingModels}
-              onChange={(model) =>
-                setDraft({ ...draft, openrouter: { ...draft.openrouter, model } })
-              }
-              onRefresh={() => void loadModels()}
-            />
-          </div>
+            </div>
+          </>
         )}
 
         {provider === 'mock' && (
