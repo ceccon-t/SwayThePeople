@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { isCoreSetupReady } from '@core/campaign/status';
+import type { NationChoice } from '@core/campaign/create';
 import { COUNCILOR_POSITION_BY_ID, TOPIC_AREA_BY_ID } from '@core/model/constants';
+import type { NationPackageInfo } from '@core/nation/package';
 import type { Campaign, CouncilorPositionId } from '@core/model/schemas';
 import { COUNCILOR_POSITION_IDS } from '@core/model/schemas';
 import { positionCouncilors } from '@core/model/queries';
@@ -152,7 +154,92 @@ function PartyStep({
           ← Back
         </button>
         <button className="btn primary" disabled={!valid} onClick={() => onSubmit(form)}>
-          Found the party → Generate the world
+          Found the party → Choose your nation
+        </button>
+      </div>
+    </Section>
+  );
+}
+
+function NationStep({
+  onBack,
+  onChoose,
+}: {
+  onBack: () => void;
+  onChoose: (choice: NationChoice) => void;
+}): JSX.Element {
+  const [nations, setNations] = useState<NationPackageInfo[] | null>(null);
+  const [chosen, setChosen] = useState(false);
+  useEffect(() => {
+    void invoke('nations.list').then((reply) => setNations(reply.ok ? reply.data : []));
+  }, []);
+  const choose = (choice: NationChoice): void => {
+    setChosen(true);
+    onChoose(choice);
+  };
+  return (
+    <Section title="Step 3 — Your Nation">
+      <p className="muted">
+        Run in a ready-made nation and start almost immediately, or let the game invent one shaped
+        around your candidacy — a longer wait, and a country no one has seen before.
+      </p>
+      {nations === null ? (
+        <Pending label="Unfolding the maps…" />
+      ) : (
+        <div className="pool-grid">
+          {nations.map((nation) => (
+            <article key={nation.id} className="person-card">
+              <header>
+                <strong>🏛 {nation.name}</strong>
+              </header>
+              <p>{nation.description}</p>
+              <p className="muted">
+                <em>States:</em> {nation.stateNames.join(', ')}
+              </p>
+              {nation.partyNames.length > 0 && (
+                <p className="muted">
+                  <em>Parties in the race:</em> {nation.partyNames.join(', ')}
+                </p>
+              )}
+              {nation.influencerCount > 0 && (
+                <p className="muted">
+                  <em>Influencer scene:</em> {nation.influencerCount} voices
+                </p>
+              )}
+              <footer className="person-actions">
+                <button
+                  className="btn small primary"
+                  disabled={chosen}
+                  onClick={() => choose({ mode: 'package', packageId: nation.id })}
+                >
+                  Run here
+                </button>
+              </footer>
+            </article>
+          ))}
+          <article className="person-card">
+            <header>
+              <strong>✨ A nation of your own</strong>
+            </header>
+            <p>
+              The game invents a country where your candidacy makes sense — and has friction.
+              Written piece by piece while you watch; the slowest but most personal start.
+            </p>
+            <footer className="person-actions">
+              <button
+                className="btn small"
+                disabled={chosen}
+                onClick={() => choose({ mode: 'generate' })}
+              >
+                Invent a nation
+              </button>
+            </footer>
+          </article>
+        </div>
+      )}
+      <div className="wizard-actions">
+        <button className="btn ghost" disabled={chosen} onClick={onBack}>
+          ← Back
         </button>
       </div>
     </Section>
@@ -291,6 +378,10 @@ function WorldStep(): JSX.Element {
     return poolFilled && positionCouncilors(campaign, id).every((c) => c.agendaMatch);
   });
   const influencersDone = campaign.influencers.length >= settings.influencerCount;
+  const fromPackage = campaign.nationRef?.kind === 'package';
+  const affinitiesDone =
+    influencersDone &&
+    campaign.influencers.every((i) => i.partyAffinity[campaign.playerPartyId] !== undefined);
 
   const working =
     queue.find((j) => j.status === 'running') ?? queue.find((j) => j.status === 'pending');
@@ -421,6 +512,11 @@ function WorldStep(): JSX.Element {
             stateOf(influencersDone, ['influencers.generate']),
             `Influencer scene (${campaign.influencers.length}/${settings.influencerCount} scouted)`,
           )}
+          {fromPackage &&
+            item(
+              stateOf(affinitiesDone, ['influencers.affinity']),
+              'Influencer reactions to your message',
+            )}
         </ul>
       </div>
 
@@ -459,8 +555,9 @@ function WorldStep(): JSX.Element {
 
 export function NewCampaign(): JSX.Element {
   const { campaign, showError } = useStore();
-  const [step, setStep] = useState<'candidate' | 'party'>('candidate');
+  const [step, setStep] = useState<'candidate' | 'party' | 'nation'>('candidate');
   const [candidate, setCandidate] = useState<CandidateForm | null>(null);
+  const [party, setParty] = useState<PartyForm | null>(null);
 
   // A campaign in setup already exists → jump straight to the world step.
   if (campaign && campaign.phase === 'setup') return <WorldStep />;
@@ -475,8 +572,8 @@ export function NewCampaign(): JSX.Element {
     );
   }
 
-  const create = async (party: PartyForm): Promise<void> => {
-    if (!candidate) return;
+  const create = async (nation: NationChoice): Promise<void> => {
+    if (!candidate || !party) return;
     const reply = await invoke('campaign.new', {
       candidate: {
         name: candidate.name.trim(),
@@ -491,6 +588,7 @@ export function NewCampaign(): JSX.Element {
         publicAgenda: party.publicAgenda.trim(),
         hiddenAgenda: party.hiddenAgenda.trim(),
       },
+      nation,
     });
     if (!reply.ok) showError(reply.error);
   };
@@ -506,7 +604,16 @@ export function NewCampaign(): JSX.Element {
         />
       )}
       {step === 'party' && (
-        <PartyStep onBack={() => setStep('candidate')} onSubmit={(form) => void create(form)} />
+        <PartyStep
+          onBack={() => setStep('candidate')}
+          onSubmit={(form) => {
+            setParty(form);
+            setStep('nation');
+          }}
+        />
+      )}
+      {step === 'nation' && (
+        <NationStep onBack={() => setStep('party')} onChoose={(choice) => void create(choice)} />
       )}
     </div>
   );

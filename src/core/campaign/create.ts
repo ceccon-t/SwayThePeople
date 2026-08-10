@@ -2,8 +2,17 @@ import { COUNCILOR_POSITION_IDS } from '../model/schemas';
 import type { Campaign } from '../model/schemas';
 import { DEFAULT_CAMPAIGN_SETTINGS } from '../model/constants';
 import { newId } from '../model/ids';
-import { hashSeed } from '../sim/rng';
+import { hashSeed, Rng } from '../sim/rng';
+import { instantiateNationPackage } from '../nation/package';
+import type { NationPackage } from '../nation/package';
 import { z } from 'zod';
+
+/** How the campaign gets its nation; absent means 'generate' (back-compat). */
+export const nationChoiceSchema = z.discriminatedUnion('mode', [
+  z.object({ mode: z.literal('generate') }),
+  z.object({ mode: z.literal('package'), packageId: z.string().min(1) }),
+]);
+export type NationChoice = z.infer<typeof nationChoiceSchema>;
 
 export const newCampaignInputSchema = z.object({
   candidate: z.object({
@@ -19,14 +28,21 @@ export const newCampaignInputSchema = z.object({
     publicAgenda: z.string().min(1),
     hiddenAgenda: z.string().min(1),
   }),
+  nation: nationChoiceSchema.optional(),
 });
 export type NewCampaignInput = z.infer<typeof newCampaignInputSchema>;
 
-export function createCampaign(input: NewCampaignInput): Campaign {
+/**
+ * Build a new campaign in setup phase. With a nation package the world (and
+ * whatever landscape the package carries) exists from the first frame and the
+ * queue only generates what is missing; without one, the nation starts null
+ * and world.generate invents it around the player's candidacy.
+ */
+export function createCampaign(input: NewCampaignInput, nationPackage?: NationPackage): Campaign {
   const partyId = newId('party');
   const candidateId = newId('cand');
   const campaignId = newId('camp');
-  return {
+  const campaign: Campaign = {
     id: campaignId,
     schemaVersion: 1,
     createdAt: new Date().toISOString(),
@@ -35,6 +51,7 @@ export function createCampaign(input: NewCampaignInput): Campaign {
     day: 0,
     rngState: hashSeed(`${campaignId}:${input.candidate.name}:${input.party.name}`),
     nation: null,
+    nationRef: { kind: 'generated' },
     parties: [
       {
         id: partyId,
@@ -72,4 +89,10 @@ export function createCampaign(input: NewCampaignInput): Campaign {
     days: [],
     log: [],
   };
+  if (nationPackage) {
+    const rng = new Rng(campaign.rngState);
+    instantiateNationPackage(campaign, nationPackage, rng);
+    campaign.rngState = rng.state;
+  }
+  return campaign;
 }

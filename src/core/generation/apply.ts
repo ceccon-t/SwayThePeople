@@ -13,6 +13,7 @@ import {
   getPlayerCandidate,
   positionCouncilors,
 } from '../model/queries';
+import { clampAge, normalizeWeights, uniquePartyCode } from '../model/sanitize';
 import type { Campaign, OpinionImpact, TopicAreaId, TopicNumbers } from '../model/schemas';
 import { TOPIC_AREA_IDS } from '../model/schemas';
 import { addLog } from '../sim/log';
@@ -33,6 +34,7 @@ import {
   epilogueOutputSchema,
   eventEvalOutputSchema,
   eventGenOutputSchema,
+  influencerAffinityOutputSchema,
   influencerContentOutputSchema,
   influencersOutputSchema,
   answerOutputSchema,
@@ -100,27 +102,6 @@ function toImpact(
     regionalEmphasis: regionalEmphasis.length > 0 ? regionalEmphasis : undefined,
     rationale: raw.rationale,
   };
-}
-
-function normalizeWeights(values: number[]): number[] {
-  const positive = values.map((v) => Math.max(v, 0.01));
-  const total = positive.reduce((sum, v) => sum + v, 0);
-  return positive.map((v) => v / total);
-}
-
-function uniquePartyCode(campaign: Campaign, proposed: string, rng: Rng): string {
-  const taken = new Set(campaign.parties.map((p) => p.code));
-  const cleaned = proposed.replace(/\D/g, '').padStart(2, '0').slice(0, 2);
-  if (cleaned.length === 2 && !taken.has(cleaned)) return cleaned;
-  for (let attempt = 0; attempt < 100; attempt++) {
-    const code = String(rng.int(10, 99));
-    if (!taken.has(code)) return code;
-  }
-  return '99';
-}
-
-function clampAge(age: number): number {
-  return Math.round(clamp(age, 18, 99));
 }
 
 // ---------------------------------------------------------------------------
@@ -233,6 +214,12 @@ export function applyJobResult(
         if (stateId) stateAffinity[stateId] = clamp(entry.affinity, 0, 100);
       }
       seedCandidateApproval(campaign, candidateId, topicScores, stateAffinity);
+      // Remember the original seed: it lets a played campaign's nation be
+      // exported later as a package with faithful baseline opinions.
+      (campaign.initialOpinion ??= {})[candidateId] = {
+        topicScores,
+        stateAffinities: stateAffinity,
+      };
       // Once the whole field is polled, cap the starting spread so no race is
       // decided before day 1 (see BOUNDS.initialApprovalGapMax).
       const fieldComplete =
@@ -308,6 +295,24 @@ export function applyJobResult(
           partyAffinity,
           contentLog: [],
         });
+      }
+      return;
+    }
+
+    case 'influencers.affinity': {
+      const { influencerIds } = payload as JobPayloads['influencers.affinity'];
+      const targets = campaign.influencers.filter(
+        (i) =>
+          influencerIds.includes(i.id) && i.partyAffinity[campaign.playerPartyId] === undefined,
+      );
+      if (targets.length === 0) return;
+      const data = influencerAffinityOutputSchema.parse(output);
+      for (const [index, influencer] of targets.entries()) {
+        const rating =
+          data.affinities.find((a) => findByName([influencer], a.influencer) !== undefined) ??
+          data.affinities[index];
+        // Missing ratings settle at indifference so the need always clears.
+        influencer.partyAffinity[campaign.playerPartyId] = clamp(rating?.affinity ?? 50, 0, 100);
       }
       return;
     }

@@ -113,6 +113,10 @@ export const influencersOutputSchema = z.object({
     .min(1),
 });
 
+export const influencerAffinityOutputSchema = z.object({
+  affinities: z.array(z.object({ influencer: str, affinity: num })).min(1),
+});
+
 export const eventGenOutputSchema = z.object({
   title: str.min(1),
   description: str.min(1),
@@ -177,6 +181,7 @@ const JSON_SCHEMAS: Partial<Record<JobType, z.ZodTypeAny>> = {
   'councilor.pool': councilorPoolOutputSchema,
   'councilor.match': councilorMatchOutputSchema,
   'influencers.generate': influencersOutputSchema,
+  'influencers.affinity': influencerAffinityOutputSchema,
   'event.generate': eventGenOutputSchema,
   'event.evaluate': eventEvalOutputSchema,
   'influencer.content': influencerContentOutputSchema,

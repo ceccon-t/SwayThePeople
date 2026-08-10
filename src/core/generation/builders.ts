@@ -195,6 +195,28 @@ ${jsonInstructions('{"influencers":[{"name":"…","age":33,"gender":"…","bio":
     );
   },
 
+  'influencers.affinity': (campaign, payload) => {
+    const party = getPlayerParty(campaign);
+    const profiles = campaign.influencers
+      .filter((i) => payload.influencerIds.includes(i.id))
+      .map((i) => `- ${i.name}: ${i.bio} Domain: ${i.domain}. Audience: ${i.audience}.`)
+      .join('\n');
+    return make(
+      'influencers.affinity',
+      [
+        { text: worldPrimer(campaign) },
+        {
+          text: `A newcomer party is entering the race: ${party.name}, candidate ${getPlayerCandidate(campaign).name} — public agenda: ${party.publicAgenda}`,
+        },
+        { text: `The nation's influencers:\n${profiles}` },
+      ],
+      `As a neutral media analyst, rate how naturally each influencer's persona and audience align with this newcomer's public message: one 0-100 affinity per influencer (50 = indifferent). Be discriminating — some should warm to it, some should bristle.
+${jsonInstructions('{"affinities":[{"influencer":"Name","affinity":35}]}')}`,
+      TEMP.referee,
+      500,
+    );
+  },
+
   'event.generate': (campaign, payload) => {
     return make(
       'event.generate',

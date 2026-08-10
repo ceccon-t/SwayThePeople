@@ -38,9 +38,12 @@ comments — this file is about the rules that hold the system together.
    deliberately sequential: it yields at most one world-building job at a time, in a fixed
    narrative order (nation → councilor options per role → rivals → opinion → extras), so slow
    local engines are never buried in queued work and the player watches the world assemble piece
-   by piece. Starting the campaign requires only the essentials (nation, rivals, initial
-   opinion); the platform, agenda fits and influencers keep generating in the background and show
-   as placeholders until they land.
+   by piece. A campaign created from a nation package enters this chain mid-way — whatever the
+   package provided is already in state — and when the candidate field is complete from the
+   start, initial opinion jumps to the front so the campaign becomes startable after polling the
+   player alone. Starting the campaign requires only the essentials (nation, rivals, initial
+   opinion); the platform, agenda fits, influencers and their affinity to the player's party keep
+   generating in the background and show as placeholders until they land.
 
 7. **The LLM proposes, the core disposes.** Structured outputs are zod-validated
    (`core/generation/outputs.ts`), entity references arrive as _names_ and are leniently mapped to
@@ -77,6 +80,18 @@ comments — this file is about the rules that hold the system together.
 14. **MockAdapter is a first-class engine.** The whole game must remain playable and testable
     offline through it; the full-campaign smoke test (`tests/smoke.test.ts`) is the standing proof
     and must keep passing.
+
+15. **Nations are packageable, and packages hold only player-independent content.** A
+    `NationPackage` (`core/nation/package.ts`) is the one shareable nation format — used by the
+    bundled defaults today and by save/share/import and the nation wizard later. It carries the
+    nation core (states) plus optional sections: rival parties with their candidates, their
+    baseline opinions, and the influencer scene. Every optional section a package omits is simply
+    generated per campaign — needs derivation already treats missing content as work to do.
+    Anything shaped by the player's candidacy (councilors, the platform, the player's opinion
+    seed, influencer affinity toward the player's party) is never part of a package and is always
+    generated per campaign. Packages are untrusted input: instantiation zod-validates them and
+    runs every value through the same normalization and clamps as LLM output ("the file
+    proposes, the core disposes").
 
 ## State flow
 

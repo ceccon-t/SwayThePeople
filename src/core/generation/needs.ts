@@ -9,6 +9,10 @@
  * councilor options role by role → rivals → initial opinion → extras). Local
  * engines are slow; a single-job chain keeps them from being buried in queued
  * work and lets the player read each result while the next one generates.
+ * When the campaign was created from a nation package the same chain simply
+ * starts further along — whatever the package provided is already in state —
+ * and initial opinion is pulled to the front so the campaign becomes
+ * startable after polling the player alone.
  */
 import { COUNCILOR_POSITION_BY_ID } from '../model/constants';
 import { positionCouncilors } from '../model/queries';
@@ -45,6 +49,19 @@ function nextSetupJob(campaign: Campaign): JobRequest | null {
 
   // 1. The nation — everything else depends on it.
   if (!campaign.nation) return job('world.generate', '', 'high', {});
+
+  // With a package-born landscape the candidate field is complete from the
+  // first frame: poll whoever is missing (usually just the player) before
+  // anything else, so the campaign becomes startable after a single job. In
+  // the generated path this loop is reached only when pools are already full,
+  // so the narrative order below is unchanged.
+  if (campaign.parties.length >= settings.rivalCount + 1) {
+    for (const candidate of campaign.candidates) {
+      if (!isCandidateSeeded(campaign, candidate.id)) {
+        return job('opinion.seed', candidate.id, 'high', { candidateId: candidate.id });
+      }
+    }
+  }
 
   // 2. Councilor options, one position at a time, so the player can read and
   //    choose applicants while the next batch is being written.
@@ -92,12 +109,26 @@ function nextSetupJob(campaign: Campaign): JobRequest | null {
   if (playerParty && playerParty.policies.length === 0) {
     return job('party.policies', playerParty.id, 'background', { partyId: playerParty.id });
   }
+  const unrated = unratedInfluencerIds(campaign);
+  if (unrated.length > 0) {
+    return job('influencers.affinity', unrated.join('.'), 'background', {
+      influencerIds: unrated,
+    });
+  }
   if (campaign.influencers.length < settings.influencerCount) {
     return job('influencers.generate', String(campaign.influencers.length), 'background', {
       count: Math.min(3, settings.influencerCount - campaign.influencers.length),
     });
   }
   return null;
+}
+
+/** Influencers with no affinity toward the player's party yet (package-born
+ *  influencers predate it; generated ones are rated at generation time). */
+function unratedInfluencerIds(campaign: Campaign): string[] {
+  return campaign.influencers
+    .filter((i) => i.partyAffinity[campaign.playerPartyId] === undefined)
+    .map((i) => i.id);
 }
 
 /** Chat replies are needed in any phase; only hired councilors have threads. */
@@ -174,6 +205,12 @@ function deriveOngoingJobs(campaign: Campaign): JobRequest[] {
       job('influencers.generate', String(campaign.influencers.length), 'background', {
         count,
       }),
+    );
+  }
+  const unrated = unratedInfluencerIds(campaign);
+  if (unrated.length > 0) {
+    jobs.push(
+      job('influencers.affinity', unrated.join('.'), 'background', { influencerIds: unrated }),
     );
   }
 
@@ -274,6 +311,8 @@ export function jobLabel(campaign: Campaign, request: JobRequest): string {
       return 'Assessing applicants against your agendas…';
     case 'influencers.generate':
       return 'Scouting influencers…';
+    case 'influencers.affinity':
+      return 'Sounding out the influencers on your message…';
     case 'event.generate':
       return 'A story is breaking…';
     case 'event.evaluate':

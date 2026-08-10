@@ -14,6 +14,7 @@ export const JOB_TYPES = [
   'councilor.pool',
   'councilor.match',
   'influencers.generate',
+  'influencers.affinity',
   'event.generate',
   'event.evaluate',
   'day.report',
@@ -46,6 +47,9 @@ export interface JobPayloads {
   'councilor.pool': { positionId: CouncilorPositionId; count: number };
   'councilor.match': { positionId: CouncilorPositionId; councilorIds: string[] };
   'influencers.generate': { count: number };
+  /** Rate existing influencers' affinity toward the player's party (packages
+   *  ship influencers who have never heard of it). */
+  'influencers.affinity': { influencerIds: string[] };
   'event.generate': { day: number };
   'event.evaluate': { eventId: string };
   'day.report': { day: number };

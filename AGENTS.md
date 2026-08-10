@@ -50,6 +50,9 @@ npm run typecheck && npm run lint && npm test
 
 - **New gameplay tuning**: change `DEFAULT_CAMPAIGN_SETTINGS` / `BOUNDS` in
   `core/model/constants.ts` only.
+- **New or changed default nation**: edit `src/main/nations/defaults.ts`; every package is
+  validated against `nationPackageSchema` at module load. Player-independent content only — see
+  ARCHITECTURE.md axiom 15.
 - **New screen**: add to `renderer/src/screens/`, register in `SCREENS` in `App.tsx`, navigate via
   the store. Use the shared async components (`Pending`, `FailedJobs`) for anything generated.
 - **New LLM provider**: implement `LlmEngine` in `src/main/llm/`, add it to `factory.ts` and the

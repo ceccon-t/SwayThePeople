@@ -322,6 +322,14 @@ export class MockAdapter implements LlmEngine {
         return JSON.stringify({ influencers });
       }
 
+      case 'influencers.affinity':
+        return JSON.stringify({
+          affinities: Array.from({ length: 8 }, (_, i) => ({
+            influencer: `influencer ${i + 1}`,
+            affinity: 25 + ((n * 7 + i * 13) % 60),
+          })),
+        });
+
       case 'event.generate':
         return JSON.stringify({
           title: `Dockworkers Strike in Port Aurelia (${n})`,

@@ -154,6 +154,26 @@ export const nationSchema = z.object({
 });
 export type Nation = z.infer<typeof nationSchema>;
 
+/** Where a campaign's nation came from (absent in pre-package saves). */
+export const nationRefSchema = z.object({
+  kind: z.enum(['generated', 'package']),
+  packageId: z.string().optional(),
+  packageFormatVersion: z.number().int().optional(),
+});
+export type NationRef = z.infer<typeof nationRefSchema>;
+
+/**
+ * A candidate's day-0 standing as originally seeded (from opinion.seed or a
+ * nation package). Kept immutable so a played campaign's nation can later be
+ * exported as a package with faithful baseline opinions.
+ */
+export const initialOpinionEntrySchema = z.object({
+  topicScores: topicNumbersSchema,
+  /** stateId → 0–100 affinity. */
+  stateAffinities: z.record(z.string(), z.number()),
+});
+export type InitialOpinionEntry = z.infer<typeof initialOpinionEntrySchema>;
+
 // ---------------------------------------------------------------------------
 // Opinion, impacts, surveys
 // ---------------------------------------------------------------------------
@@ -338,6 +358,9 @@ export const campaignSchema = z.object({
   day: z.number().int(),
   rngState: z.number(),
   nation: nationSchema.nullable(),
+  nationRef: nationRefSchema.optional(),
+  /** candidateId → original seeded standing (absent in pre-package saves). */
+  initialOpinion: z.record(z.string(), initialOpinionEntrySchema).optional(),
   parties: z.array(partySchema),
   candidates: z.array(candidateSchema),
   playerPartyId: z.string(),

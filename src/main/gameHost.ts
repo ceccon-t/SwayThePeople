@@ -4,6 +4,8 @@
  * the full game can be driven headlessly in tests.
  */
 import { createCampaign } from '@core/campaign/create';
+import type { NewCampaignInput } from '@core/campaign/create';
+import { describeNationPackage } from '@core/nation/package';
 import { applyCommand } from '@core/commands/reducer';
 import { CommandError } from '@core/commands/commands';
 import type { PlayerCommand } from '@core/commands/commands';
@@ -15,6 +17,7 @@ import { INVOKE_SCHEMAS } from '@core/protocol';
 import type { EventPayloads, InvokeChannel, InvokeResults, Reply } from '@core/protocol';
 import { llmSettingsSchema } from '@core/generation/engine';
 import { createEngine, isEngineConfigured } from './llm/factory';
+import { DEFAULT_NATION_PACKAGES, findDefaultNation } from './nations/defaults';
 import { PersistenceService } from './persistence';
 import { GenerationQueue } from './queue';
 
@@ -79,7 +82,14 @@ export class GameHost {
     type R = InvokeResults[C];
     switch (channel) {
       case 'campaign.new': {
-        this.campaign = createCampaign(payload as Parameters<typeof createCampaign>[0]);
+        const input = payload as NewCampaignInput;
+        const choice = input.nation;
+        let nationPackage;
+        if (choice?.mode === 'package') {
+          nationPackage = findDefaultNation(choice.packageId);
+          if (!nationPackage) throw new CommandError(`Unknown nation: ${choice.packageId}`);
+        }
+        this.campaign = createCampaign(input, nationPackage);
         this.afterStateChange();
         return this.campaign as R;
       }
@@ -113,6 +123,8 @@ export class GameHost {
         return this.campaign as R;
       case 'saves.list':
         return this.persistence.listSaves() as R;
+      case 'nations.list':
+        return DEFAULT_NATION_PACKAGES.map(describeNationPackage) as R;
       case 'settings.get':
         return this.settings as R;
       case 'settings.setLlm': {

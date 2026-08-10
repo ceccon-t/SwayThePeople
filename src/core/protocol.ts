@@ -10,6 +10,7 @@ import { llmSettingsSchema } from './generation/engine';
 import type { LlmSettings, ModelInfo } from './generation/engine';
 import type { JobSnapshot } from './generation/jobs';
 import type { Campaign } from './model/schemas';
+import type { NationPackageInfo } from './nation/package';
 
 export const INVOKE_SCHEMAS = {
   'campaign.new': newCampaignInputSchema,
@@ -20,6 +21,7 @@ export const INVOKE_SCHEMAS = {
   'campaign.close': z.object({}).optional(),
   'campaign.snapshot': z.object({}).optional(),
   'saves.list': z.object({}).optional(),
+  'nations.list': z.object({}).optional(),
   'settings.get': z.object({}).optional(),
   'settings.setLlm': llmSettingsSchema,
   /** Model listing / connection tests run against candidate (unsaved) settings. */
@@ -54,6 +56,7 @@ export interface InvokeResults {
   'campaign.close': null;
   'campaign.snapshot': Campaign | null;
   'saves.list': SaveInfo[];
+  'nations.list': NationPackageInfo[];
   'settings.get': LlmSettings;
   'settings.setLlm': LlmSettings;
   'llm.listModels': ModelInfo[];
