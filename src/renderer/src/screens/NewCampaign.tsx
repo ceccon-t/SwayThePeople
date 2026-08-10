@@ -186,57 +186,29 @@ function NationStep({
       {nations === null ? (
         <Pending label="Unfolding the maps…" />
       ) : (
-        <div className="pool-grid">
+        <div className="nation-grid">
           {nations.map((nation) => (
-            <article key={nation.id} className="person-card">
-              <header>
-                <strong>🏛 {nation.name}</strong>
-              </header>
-              <p>{nation.description}</p>
-              <p className="muted">
-                <em>States:</em> {nation.stateNames.join(', ')}
-              </p>
-              {nation.partyNames.length > 0 && (
-                <p className="muted">
-                  <em>Parties in the race:</em> {nation.partyNames.join(', ')}
-                </p>
-              )}
-              {nation.influencerCount > 0 && (
-                <p className="muted">
-                  <em>Influencer scene:</em> {nation.influencerCount} voices
-                </p>
-              )}
-              <footer className="person-actions">
-                <button
-                  className="btn small primary"
-                  disabled={chosen}
-                  onClick={() => choose({ mode: 'package', packageId: nation.id })}
-                >
-                  Run here
-                </button>
-              </footer>
+            <article key={nation.id} className="nation-card">
+              <h3>{nation.name}</h3>
+              <p className="muted">{nation.description}</p>
+              <button
+                className="btn primary"
+                disabled={chosen}
+                onClick={() => choose({ mode: 'package', packageId: nation.id })}
+              >
+                Run here
+              </button>
             </article>
           ))}
-          <article className="person-card">
-            <header>
-              <strong>✨ A nation of your own</strong>
-            </header>
-            <p>
-              The game invents a country where your candidacy makes sense — and has friction.
-              Written piece by piece while you watch; the slowest but most personal start.
-            </p>
-            <footer className="person-actions">
-              <button
-                className="btn small"
-                disabled={chosen}
-                onClick={() => choose({ mode: 'generate' })}
-              >
-                Invent a nation
-              </button>
-            </footer>
-          </article>
         </div>
       )}
+      <button
+        className="btn big nation-generate"
+        disabled={chosen}
+        onClick={() => choose({ mode: 'generate' })}
+      >
+        ✨ Let the AI generate a nation
+      </button>
       <div className="wizard-actions">
         <button className="btn ghost" disabled={chosen} onClick={onBack}>
           ← Back

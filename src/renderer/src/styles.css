@@ -987,6 +987,50 @@ textarea {
   border-top: 1px solid var(--border);
 }
 
+/* --------------------------------------------- wizard: choosing the nation */
+
+/* Fixed 3-up grid; saved and imported nations will grow it downward, so the
+   section scrolls rather than pushing the AI option off-screen. */
+.nation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin: 16px 0;
+  padding: 2px 6px 2px 2px;
+}
+
+.nation-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.nation-card h3 {
+  font-size: 17px;
+}
+
+.nation-card p {
+  font-size: 13.5px;
+}
+
+.nation-card .btn {
+  margin-top: auto;
+}
+
+.nation-generate {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+}
+
 /* -------------------------------------------------------------- councilors */
 
 .pool-grid,
