@@ -207,7 +207,9 @@ describe('a campaign in a bundled nation, offline', () => {
     expect(campaign.nation?.name).toBe(DEFAULT_NATION_PACKAGES[0].name);
     expect(isCoreSetupReady(campaign)).toBe(true);
     // Package identities survive untouched; only the player was polled anew.
-    expect(campaign.candidates.map((c) => c.id)).toContain('alpha-cand-1');
+    for (const packaged of DEFAULT_NATION_PACKAGES[0].candidates!) {
+      expect(campaign.candidates.map((c) => c.id)).toContain(packaged.id);
+    }
     expect(campaign.influencers.length).toBe(DEFAULT_NATION_PACKAGES[0].influencers!.length);
     // The affinity job rated every package influencer against the player.
     for (const influencer of campaign.influencers) {

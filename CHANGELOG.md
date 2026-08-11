@@ -11,8 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - AI Statement on project repository
 - Cost and privacy warnings on the "AI Engine Settings" screen when OpenRouter is selected
-- Default nations: the new-campaign wizard now offers ready-made nations (placeholder content for
-  now) alongside the AI-generated one; choosing a ready nation makes the campaign startable after
+- Default nations: the new-campaign wizard now offers three ready-made nations — the booming
+  Republic of Marovia, the restive Republic of Rockland, and serene, declining Havelmark —
+  alongside the AI-generated option; choosing a ready nation makes the campaign startable after
   a single generation job (polling the player's initial opinion)
 - Nation packages: a validated, shareable format for player-independent nation content (states,
   rival parties and candidates, baseline opinions, influencers), the foundation for future
