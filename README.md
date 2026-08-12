@@ -65,11 +65,15 @@ On distributions that restrict Chromium's sandbox (such as recent Ubuntu version
 
 ### Windows
 
-_Coming soon._
+The Windows package is an installer: `SwayThePeople-<VERSION>-win-x64.exe`. Run it and follow the wizard — you can pick the installation directory along the way. After installation the game will be available in the Start menu.
+
+Since the installer is not signed with a certificate, Windows SmartScreen may show a "Windows protected your PC" warning the first time you run it. Click "More info" and then "Run anyway" to proceed.
 
 ### macOS
 
-_Coming soon._
+Two disk images are available, one per processor type: `SwayThePeople-<VERSION>-mac-arm64.dmg` for Apple Silicon Macs (M1 and later) and `SwayThePeople-<VERSION>-mac-x64.dmg` for Intel Macs. Download the one matching your machine, open it and drag the app into your Applications folder.
+
+Since the app is not signed or notarized with Apple, macOS will block the first launch with a warning. To open it anyway, go to System Settings → Privacy & Security, scroll down to the message about SwayThePeople and click "Open Anyway" — this is only needed once.
 
 ## How to build the project
 
@@ -81,11 +85,11 @@ Run `npm run build:linux` in the SwayThePeople folder. This will create both Lin
 
 ### Windows
 
-_Coming soon._
+Run `npm run build:win` in the SwayThePeople folder, on a Windows machine. This will create the installer: `SwayThePeople-<VERSION>-win-x64.exe`.
 
 ### macOS
 
-_Coming soon._
+Run `npm run build:mac` in the SwayThePeople folder, on a Mac. This will create both disk images: `SwayThePeople-<VERSION>-mac-arm64.dmg` (Apple Silicon) and `SwayThePeople-<VERSION>-mac-x64.dmg` (Intel).
 
 ## More info
 
