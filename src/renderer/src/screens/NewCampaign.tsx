@@ -3,6 +3,7 @@ import { isCoreSetupReady } from '@core/campaign/status';
 import type { NationChoice } from '@core/campaign/create';
 import { COUNCILOR_POSITION_BY_ID, TOPIC_AREA_BY_ID } from '@core/model/constants';
 import type { NationPackageInfo } from '@core/nation/package';
+import type { NationImportInfo } from '@core/protocol';
 import type { Campaign, CouncilorPositionId } from '@core/model/schemas';
 import { COUNCILOR_POSITION_IDS } from '@core/model/schemas';
 import { positionCouncilors } from '@core/model/queries';
@@ -161,6 +162,26 @@ function PartyStep({
   );
 }
 
+function fileBaseName(filePath: string): string {
+  return filePath.split(/[\\/]/).pop() ?? filePath;
+}
+
+/** What an imported package brings along, so the player knows what will still be generated. */
+function packageContents(nation: NationPackageInfo): string {
+  const parts = [`${nation.stateNames.length} states`];
+  parts.push(
+    nation.partyNames.length > 0
+      ? `${nation.partyNames.length} rival parties`
+      : 'rivals to be generated',
+  );
+  parts.push(
+    nation.influencerCount > 0
+      ? `${nation.influencerCount} influencers`
+      : 'influencers to be generated',
+  );
+  return parts.join(' · ');
+}
+
 function NationStep({
   onBack,
   onChoose,
@@ -168,7 +189,10 @@ function NationStep({
   onBack: () => void;
   onChoose: (choice: NationChoice) => void;
 }): JSX.Element {
+  const { showError } = useStore();
   const [nations, setNations] = useState<NationPackageInfo[] | null>(null);
+  const [imported, setImported] = useState<NationImportInfo | null>(null);
+  const [importing, setImporting] = useState(false);
   const [chosen, setChosen] = useState(false);
   useEffect(() => {
     void invoke('nations.list').then((reply) => setNations(reply.ok ? reply.data : []));
@@ -177,11 +201,22 @@ function NationStep({
     setChosen(true);
     onChoose(choice);
   };
+  const importNation = async (): Promise<void> => {
+    setImporting(true);
+    try {
+      const reply = await invoke('nation.import');
+      if (!reply.ok) showError(reply.error);
+      else if (reply.data) setImported(reply.data);
+    } finally {
+      setImporting(false);
+    }
+  };
   return (
     <Section title="Step 3 — Your Nation">
       <p className="muted">
-        Run in a ready-made nation and start almost immediately, or let the game invent one shaped
-        around your candidacy — a longer wait, and a country no one has seen before.
+        Run in a ready-made nation and start almost immediately, bring back a nation exported from
+        an earlier campaign, or let the game invent one shaped around your candidacy — a longer
+        wait, and a country no one has seen before.
       </p>
       {nations === null ? (
         <Pending label="Unfolding the maps…" />
@@ -202,6 +237,41 @@ function NationStep({
           ))}
         </div>
       )}
+      <div className="nation-import">
+        {imported ? (
+          <article className="nation-card imported">
+            <h3>📂 {imported.nation.name}</h3>
+            <p className="muted">{imported.nation.description}</p>
+            <p className="muted nation-import-meta" title={imported.filePath}>
+              {packageContents(imported.nation)} · from {fileBaseName(imported.filePath)}
+            </p>
+            <div className="nation-import-actions">
+              <button
+                className="btn primary"
+                disabled={chosen}
+                onClick={() => choose({ mode: 'imported', packageId: imported.nation.id })}
+              >
+                Run here
+              </button>
+              <button
+                className="btn ghost"
+                disabled={chosen || importing}
+                onClick={() => void importNation()}
+              >
+                Choose another file…
+              </button>
+            </div>
+          </article>
+        ) : (
+          <button
+            className="btn big nation-generate"
+            disabled={chosen || importing}
+            onClick={() => void importNation()}
+          >
+            📂 Import a nation from a file…
+          </button>
+        )}
+      </div>
       <button
         className="btn big nation-generate"
         disabled={chosen}

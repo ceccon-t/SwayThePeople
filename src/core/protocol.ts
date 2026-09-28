@@ -24,6 +24,8 @@ export const INVOKE_SCHEMAS = {
   'nations.list': z.object({}).optional(),
   /** Prompts for a location and writes the current nation as a package file. */
   'nation.export': z.object({}).optional(),
+  /** Prompts for a package file, validates it, and keeps it available for campaign.new. */
+  'nation.import': z.object({}).optional(),
   'settings.get': z.object({}).optional(),
   'settings.setLlm': llmSettingsSchema,
   /** Model listing / connection tests run against candidate (unsaved) settings. */
@@ -55,6 +57,12 @@ export interface NationExportInfo {
   packageName: string;
 }
 
+/** A package file the player opened; null means the dialog was cancelled. */
+export interface NationImportInfo {
+  filePath: string;
+  nation: NationPackageInfo;
+}
+
 export interface InvokeResults {
   'campaign.new': Campaign;
   'campaign.command': Campaign;
@@ -66,6 +74,7 @@ export interface InvokeResults {
   'saves.list': SaveInfo[];
   'nations.list': NationPackageInfo[];
   'nation.export': NationExportInfo | null;
+  'nation.import': NationImportInfo | null;
   'settings.get': LlmSettings;
   'settings.setLlm': LlmSettings;
   'llm.listModels': ModelInfo[];

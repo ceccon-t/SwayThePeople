@@ -40,8 +40,14 @@ export const TEST_INPUT: NewCampaignInput = {
   },
 };
 
-export function makeHost(dialogs?: FileDialogs): GameHost {
-  const host = new GameHost(tempDataDir(), () => {}, dialogs);
+/** Host with a mock engine; dialog methods a test leaves out reject like the real default. */
+export function makeHost(dialogs: Partial<FileDialogs> = {}): GameHost {
+  const unavailable = (): Promise<never> => Promise.reject(new Error('No dialog in this test.'));
+  const host = new GameHost(tempDataDir(), () => {}, {
+    pickSavePath: unavailable,
+    pickOpenPath: unavailable,
+    ...dialogs,
+  });
   host.setEngineForTesting(new MockAdapter(0));
   return host;
 }

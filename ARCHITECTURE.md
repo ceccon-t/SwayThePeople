@@ -85,8 +85,8 @@ comments — this file is about the rules that hold the system together.
 
 15. **Nations are packageable, and packages hold only player-independent content.** A
     `NationPackage` (`core/nation/package.ts`) is the one shareable nation format — used by the
-    bundled defaults, by the in-campaign export (`core/nation/export.ts`), and by file import and
-    the nation wizard later. It carries the nation core (states) plus optional sections: rival
+    bundled defaults, by the in-campaign export (`core/nation/export.ts`), by file import on the
+    new-campaign wizard (`main/nations/files.ts`), and by the nation wizard later. It carries the nation core (states) plus optional sections: rival
     parties with their candidates, their baseline opinions, and the influencer scene. Every
     optional section a package omits is simply generated per campaign — needs derivation already
     treats missing content as work to do. Anything shaped by the player's candidacy (councilors,
@@ -98,6 +98,9 @@ comments — this file is about the rules that hold the system together.
     immutable `campaign.initialOpinion` record rather than current approval, includes a cast or
     influencer section only once it is completely generated (instantiation derives the counts
     from the package), and validates the result against the same schema before it is written.
+    Imported files live only in the host's session memory, under the `imported` nation-choice
+    mode — a namespace separate from the bundled `package` ids, so an exported default can never
+    shadow the bundled original.
 
 ## State flow
 

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Export the current nation as a JSON package file from the World screen, so a generated nation can be replayed in later campaigns
+- Import a nation package file as a third option on the new-campaign wizard, alongside the ready-made nations and AI generation
 
 ## [1.0.0] - 2026-08-11
 

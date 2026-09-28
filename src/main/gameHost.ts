@@ -6,6 +6,7 @@
 import { createCampaign } from '@core/campaign/create';
 import type { NewCampaignInput } from '@core/campaign/create';
 import { describeNationPackage } from '@core/nation/package';
+import type { NationPackage } from '@core/nation/package';
 import { exportNationPackage, nationExportFileName } from '@core/nation/export';
 import { applyCommand } from '@core/commands/reducer';
 import { CommandError } from '@core/commands/commands';
@@ -19,7 +20,7 @@ import type { EventPayloads, InvokeChannel, InvokeResults, Reply } from '@core/p
 import { llmSettingsSchema } from '@core/generation/engine';
 import { createEngine, isEngineConfigured } from './llm/factory';
 import { DEFAULT_NATION_PACKAGES, findDefaultNation } from './nations/defaults';
-import { writeNationPackageFile } from './nations/files';
+import { readNationPackageFile, writeNationPackageFile } from './nations/files';
 import { PersistenceService } from './persistence';
 import { GenerationQueue } from './queue';
 
@@ -32,10 +33,13 @@ export type Broadcast = <C extends keyof EventPayloads>(
 export interface FileDialogs {
   /** Resolves to the chosen path, or null when the player cancels. */
   pickSavePath(options: { title: string; defaultFileName: string }): Promise<string | null>;
+  /** Resolves to the chosen existing file, or null when the player cancels. */
+  pickOpenPath(options: { title: string }): Promise<string | null>;
 }
 
 const NO_DIALOGS: FileDialogs = {
   pickSavePath: () => Promise.reject(new Error('File dialogs are not available here.')),
+  pickOpenPath: () => Promise.reject(new Error('File dialogs are not available here.')),
 };
 
 export class GameHost {
@@ -44,6 +48,8 @@ export class GameHost {
   private engine: LlmEngine | null = null;
   private readonly persistence: PersistenceService;
   private readonly queue: GenerationQueue;
+  /** Package files opened this session, by package id; campaign.new resolves 'imported' here. */
+  private readonly importedNations = new Map<string, NationPackage>();
 
   constructor(
     dataDir: string,
@@ -101,6 +107,13 @@ export class GameHost {
         if (choice?.mode === 'package') {
           nationPackage = findDefaultNation(choice.packageId);
           if (!nationPackage) throw new CommandError(`Unknown nation: ${choice.packageId}`);
+        } else if (choice?.mode === 'imported') {
+          nationPackage = this.importedNations.get(choice.packageId);
+          if (!nationPackage) {
+            throw new CommandError(
+              'That imported nation is no longer available — import it again.',
+            );
+          }
         }
         this.campaign = createCampaign(input, nationPackage);
         this.afterStateChange();
@@ -150,6 +163,13 @@ export class GameHost {
         if (!filePath) return null as R;
         const written = writeNationPackageFile(filePath, nationPackage);
         return { filePath: written, packageName: nationPackage.name } as R;
+      }
+      case 'nation.import': {
+        const filePath = await this.dialogs.pickOpenPath({ title: 'Import nation' });
+        if (!filePath) return null as R;
+        const nationPackage = readNationPackageFile(filePath);
+        this.importedNations.set(nationPackage.id, nationPackage);
+        return { filePath, nation: describeNationPackage(nationPackage) } as R;
       }
       case 'settings.get':
         return this.settings as R;

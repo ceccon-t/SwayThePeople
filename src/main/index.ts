@@ -19,18 +19,33 @@ function broadcast<C extends keyof EventPayloads>(channel: C, payload: EventPayl
   }
 }
 
+const PACKAGE_FILTERS = [{ name: 'Nation package (JSON)', extensions: ['json'] }];
+
 const fileDialogs: FileDialogs = {
   async pickSavePath({ title, defaultFileName }) {
     const options = {
       title,
       defaultPath: join(app.getPath('documents'), defaultFileName),
-      filters: [{ name: 'Nation package (JSON)', extensions: ['json'] }],
+      filters: PACKAGE_FILTERS,
     };
     const parent = BrowserWindow.getFocusedWindow();
     const result = parent
       ? await dialog.showSaveDialog(parent, options)
       : await dialog.showSaveDialog(options);
     return result.canceled || !result.filePath ? null : result.filePath;
+  },
+  async pickOpenPath({ title }) {
+    const options = {
+      title,
+      defaultPath: app.getPath('documents'),
+      filters: PACKAGE_FILTERS,
+      properties: ['openFile' as const],
+    };
+    const parent = BrowserWindow.getFocusedWindow();
+    const result = parent
+      ? await dialog.showOpenDialog(parent, options)
+      : await dialog.showOpenDialog(options);
+    return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0];
   },
 };
 

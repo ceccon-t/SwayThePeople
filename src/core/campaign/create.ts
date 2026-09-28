@@ -7,10 +7,16 @@ import { instantiateNationPackage } from '../nation/package';
 import type { NationPackage } from '../nation/package';
 import { z } from 'zod';
 
-/** How the campaign gets its nation; absent means 'generate' (back-compat). */
+/**
+ * How the campaign gets its nation; absent means 'generate' (back-compat).
+ * 'package' names a bundled default; 'imported' names a package file the
+ * player opened during this session (a separate namespace, so an exported
+ * default can never shadow the bundled one).
+ */
 export const nationChoiceSchema = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('generate') }),
   z.object({ mode: z.literal('package'), packageId: z.string().min(1) }),
+  z.object({ mode: z.literal('imported'), packageId: z.string().min(1) }),
 ]);
 export type NationChoice = z.infer<typeof nationChoiceSchema>;
 
