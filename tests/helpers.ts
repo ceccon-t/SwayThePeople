@@ -10,6 +10,7 @@ import type { PlayerCommand } from '@core/commands/commands';
 import { currentDayEvent, dayEndBlocker } from '@core/campaign/status';
 import { activeDebate, currentExchange, nextQuestionerId } from '@core/sim/debates';
 import { GameHost } from '../src/main/gameHost';
+import type { FileDialogs } from '../src/main/gameHost';
 import { MockAdapter } from '../src/main/llm/mock';
 
 /** Unwrap a Reply, failing the test with the transported error message. */
@@ -39,8 +40,8 @@ export const TEST_INPUT: NewCampaignInput = {
   },
 };
 
-export function makeHost(): GameHost {
-  const host = new GameHost(tempDataDir(), () => {});
+export function makeHost(dialogs?: FileDialogs): GameHost {
+  const host = new GameHost(tempDataDir(), () => {}, dialogs);
   host.setEngineForTesting(new MockAdapter(0));
   return host;
 }

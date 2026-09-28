@@ -1,11 +1,13 @@
 /**
  * The World screen: in-campaign reference for everything created during world
  * building — the nation and its states, the opponent candidates, and the
- * player's own party platform. Read-only; hidden agendas of rivals stay hidden.
+ * player's own party platform. Read-only apart from exporting the nation as a
+ * package file for replay; hidden agendas of rivals stay hidden.
  */
 import { useState } from 'react';
 import { TOPIC_AREAS, TOPIC_AREA_BY_ID } from '@core/model/constants';
 import type { Campaign, NationState } from '@core/model/schemas';
+import { invoke } from '../api';
 import { Pending, Section, formatPct, partyOf } from '../components/common';
 import { useStore } from '../store';
 
@@ -45,12 +47,48 @@ function StateCard({ state }: { state: NationState }): JSX.Element {
   );
 }
 
+/** Saves the nation as a package file the new-campaign wizard can replay. */
+function ExportNationButton(): JSX.Element {
+  const { showError } = useStore();
+  const [busy, setBusy] = useState(false);
+  const [exportedTo, setExportedTo] = useState<string | null>(null);
+
+  const exportNation = async (): Promise<void> => {
+    setBusy(true);
+    try {
+      const reply = await invoke('nation.export');
+      if (!reply.ok) showError(reply.error);
+      else if (reply.data) setExportedTo(reply.data.filePath);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <span className="export-nation">
+      {exportedTo && (
+        <span className="muted" title={exportedTo}>
+          ✓ Exported to {exportedTo}
+        </span>
+      )}
+      <button
+        className="btn small"
+        disabled={busy}
+        title="Save this nation — states, rivals and influencers — as a JSON file to replay it in another campaign."
+        onClick={() => void exportNation()}
+      >
+        ⤓ Export nation…
+      </button>
+    </span>
+  );
+}
+
 function NationTab({ campaign }: { campaign: Campaign }): JSX.Element {
   const nation = campaign.nation;
   if (!nation) return <Pending label="Shaping the nation…" />;
   return (
     <>
-      <Section title={`🏛 ${nation.name}`}>
+      <Section title={`🏛 ${nation.name}`} actions={<ExportNationButton />}>
         <p>{nation.description}</p>
       </Section>
       <Section title="States & Regions">

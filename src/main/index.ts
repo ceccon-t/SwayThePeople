@@ -1,8 +1,9 @@
 import { writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { BrowserWindow, app, ipcMain, shell } from 'electron';
+import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 import type { EventPayloads } from '@core/protocol';
 import { GameHost } from './gameHost';
+import type { FileDialogs } from './gameHost';
 
 // In development all runtime data stays inside the repo (.dev-data/), keeping
 // the host machine clean; packaged builds use the standard userData location.
@@ -17,6 +18,21 @@ function broadcast<C extends keyof EventPayloads>(channel: C, payload: EventPayl
     window.webContents.send(channel, payload);
   }
 }
+
+const fileDialogs: FileDialogs = {
+  async pickSavePath({ title, defaultFileName }) {
+    const options = {
+      title,
+      defaultPath: join(app.getPath('documents'), defaultFileName),
+      filters: [{ name: 'Nation package (JSON)', extensions: ['json'] }],
+    };
+    const parent = BrowserWindow.getFocusedWindow();
+    const result = parent
+      ? await dialog.showSaveDialog(parent, options)
+      : await dialog.showSaveDialog(options);
+    return result.canceled || !result.filePath ? null : result.filePath;
+  },
+};
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -62,7 +78,7 @@ function createWindow(): void {
 }
 
 void app.whenReady().then(() => {
-  host = new GameHost(app.getPath('userData'), broadcast);
+  host = new GameHost(app.getPath('userData'), broadcast, fileDialogs);
   ipcMain.handle('app:invoke', (_event, channel: string, payload: unknown) =>
     host?.handle(channel, payload),
   );

@@ -1,11 +1,12 @@
 /**
  * GameHost: owns the authoritative campaign state and orchestrates the engine,
- * queue and persistence. Deliberately Electron-free (broadcast is injected) so
- * the full game can be driven headlessly in tests.
+ * queue and persistence. Deliberately Electron-free (broadcast and native file
+ * dialogs are injected) so the full game can be driven headlessly in tests.
  */
 import { createCampaign } from '@core/campaign/create';
 import type { NewCampaignInput } from '@core/campaign/create';
 import { describeNationPackage } from '@core/nation/package';
+import { exportNationPackage, nationExportFileName } from '@core/nation/export';
 import { applyCommand } from '@core/commands/reducer';
 import { CommandError } from '@core/commands/commands';
 import type { PlayerCommand } from '@core/commands/commands';
@@ -18,6 +19,7 @@ import type { EventPayloads, InvokeChannel, InvokeResults, Reply } from '@core/p
 import { llmSettingsSchema } from '@core/generation/engine';
 import { createEngine, isEngineConfigured } from './llm/factory';
 import { DEFAULT_NATION_PACKAGES, findDefaultNation } from './nations/defaults';
+import { writeNationPackageFile } from './nations/files';
 import { PersistenceService } from './persistence';
 import { GenerationQueue } from './queue';
 
@@ -25,6 +27,16 @@ export type Broadcast = <C extends keyof EventPayloads>(
   channel: C,
   payload: EventPayloads[C],
 ) => void;
+
+/** Native file dialogs; the Electron entry point supplies them, tests stub them. */
+export interface FileDialogs {
+  /** Resolves to the chosen path, or null when the player cancels. */
+  pickSavePath(options: { title: string; defaultFileName: string }): Promise<string | null>;
+}
+
+const NO_DIALOGS: FileDialogs = {
+  pickSavePath: () => Promise.reject(new Error('File dialogs are not available here.')),
+};
 
 export class GameHost {
   private campaign: Campaign | null = null;
@@ -36,6 +48,7 @@ export class GameHost {
   constructor(
     dataDir: string,
     private readonly broadcast: Broadcast,
+    private readonly dialogs: FileDialogs = NO_DIALOGS,
   ) {
     this.persistence = new PersistenceService(dataDir);
     this.settings = this.persistence.loadSettings();
@@ -125,6 +138,19 @@ export class GameHost {
         return this.persistence.listSaves() as R;
       case 'nations.list':
         return DEFAULT_NATION_PACKAGES.map(describeNationPackage) as R;
+      case 'nation.export': {
+        if (!this.campaign) throw new CommandError('No campaign in progress.');
+        // Build (and validate) before prompting, so a nation that cannot be
+        // exported yet fails fast instead of after the player picked a file.
+        const nationPackage = exportNationPackage(this.campaign);
+        const filePath = await this.dialogs.pickSavePath({
+          title: 'Export nation',
+          defaultFileName: nationExportFileName(this.campaign),
+        });
+        if (!filePath) return null as R;
+        const written = writeNationPackageFile(filePath, nationPackage);
+        return { filePath: written, packageName: nationPackage.name } as R;
+      }
       case 'settings.get':
         return this.settings as R;
       case 'settings.setLlm': {

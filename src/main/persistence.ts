@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { DEFAULT_LLM_SETTINGS, llmSettingsSchema } from '@core/generation/engine';
 import type { LlmSettings } from '@core/generation/engine';
+import { slugify } from '@core/model/sanitize';
 import { campaignSchema } from '@core/model/schemas';
 import type { Campaign } from '@core/model/schemas';
 import type { SaveInfo } from '@core/protocol';
@@ -20,16 +21,6 @@ const saveFileSchema = z.object({
   name: z.string(),
   campaign: campaignSchema,
 });
-
-function slugify(name: string): string {
-  return (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 60) || 'campaign'
-  );
-}
 
 export class PersistenceService {
   private readonly savesDir: string;
@@ -56,7 +47,7 @@ export class PersistenceService {
 
   /** Same name = same slot (overwrites); new names create new slots. */
   saveCampaign(name: string, campaign: Campaign): SaveInfo {
-    const fileName = `${slugify(name)}.json`;
+    const fileName = `${slugify(name, 'campaign')}.json`;
     const payload = {
       formatVersion: SAVE_FORMAT_VERSION,
       savedAt: new Date().toISOString(),

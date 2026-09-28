@@ -29,3 +29,14 @@ export function uniquePartyCode(campaign: Campaign, proposed: string, rng: Rng):
 export function clampAge(age: number): number {
   return Math.round(clamp(age, 18, 99));
 }
+
+/** File-system-safe slug of a display name (save slots, exported package files). */
+export function slugify(name: string, fallback: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || fallback
+  );
+}

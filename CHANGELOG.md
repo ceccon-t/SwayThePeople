@@ -5,13 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Export the current nation as a JSON package file from the World screen, so a generated nation can be replayed in later campaigns
+
 ## [1.0.0] - 2026-08-11
 
 ### Added
 
 - Cost and privacy warnings on the "AI Engine Settings" screen when OpenRouter is selected
 - Default nations: the new-campaign wizard now offers three ready-made nations
-
 
 ## [0.0.2] - 2026-08-06
 
@@ -23,7 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Epilogue now has Retry button when an LLM request fails, like all other screens
 - Councilors now receive their fitness to agendas rating even starting campaign before optional parts are generated
-
 
 ## [0.0.1] - 2026-07-28
 
