@@ -7,6 +7,8 @@ language model generates the world, the rivals, the debates and the consequences
 candidate, found a party with a public _and a hidden_ agenda, hire councilors, fight for public
 opinion across states and topics, and face the vote after a 14-day campaign.
 
+Also available on [itch.io](https://augmented-universe-games.itch.io/sway-the-people).
+
 ![Main menu of the game](docs/images/SwayThePeople_v0-0-1_sc0.png "Main menu of the game")
 
 ## How to use
