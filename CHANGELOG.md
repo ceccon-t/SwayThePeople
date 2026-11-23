@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-11-22
+
+### Changed
+
+- Question generation during debate now prioritizes previous statements on the relevant topic and most recent statements.
+
+### Fixed
+
+- Candidate statement history now uses actual debate answers and event responses with their context, excluding pundit verdicts and unused suggestions
+- Debate transcripts now retain the most recent complete exchanges that fit the existing token budget, displayed chronologically, instead of truncating later exchanges
+
 ## [1.1.0] - 2026-09-27
 
 ### Added
