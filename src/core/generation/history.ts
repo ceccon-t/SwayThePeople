@@ -1,5 +1,5 @@
 /** Windowed history slices for prompts — newest first, budget-capped. */
-import type { Campaign, LogEntry } from '../model/schemas';
+import type { Campaign, LogEntry, TopicAreaId } from '../model/schemas';
 import { truncateToTokens } from './budget';
 
 function renderEntries(entries: LogEntry[], maxTokens: number): string {
@@ -14,18 +14,25 @@ export function recentLog(campaign: Campaign, count: number, maxTokens = 600): s
 
 /**
  * Public statements involving a candidate (debate exchanges, event responses)
- * — what opponents can quote back at them.
+ * — what opponents can quote back at them. Matching topics come first, newest
+ * first within each group, so truncation preserves the preferred evidence.
  */
 export function candidateStatements(
   campaign: Campaign,
   candidateId: string,
+  topicAreaId: TopicAreaId,
   count: number,
   maxTokens = 700,
 ): string {
   const entries = campaign.log
-    .filter((e) => e.candidateId === candidateId && (e.kind === 'debate' || e.kind === 'event'))
-    .slice(-count);
-  return renderEntries(entries, maxTokens);
+    .filter(
+      (entry) =>
+        entry.candidateId === candidateId && (entry.kind === 'debate' || entry.kind === 'event'),
+    )
+    .reverse();
+  const matching = entries.filter((entry) => entry.topicAreaId === topicAreaId);
+  const other = entries.filter((entry) => entry.topicAreaId !== topicAreaId);
+  return renderEntries([...matching, ...other].slice(0, count), maxTokens);
 }
 
 /** Transcript of the current debate's completed exchanges. */
